@@ -28,6 +28,28 @@
     </header>
 
     <main class="container-fluid conteneur-base px-0"> 
+
+        {% for type, messages in app.flashes %}
+            
+            {# 'app' est une variable twig qui contient toutes les informations stockees en session. Dans l'index flashes , on stack tous les messages destines a l'utilisateur. #}
+
+            <div class="alert alert-{{ type }} alert-dismissible fade show col-md-5 mx-auto my-3 text-center" role="alert">
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            
+                {% for message in messages %}
+
+                    <strong> {{ message }} </strong>
+
+                {% endfor %}
+                
+
+            </div>
+            
+
+        {% endfor %}
+
+        {# {{ dump(app) }} #}
+
     <body>
         {% block body %}{% endblock %}
     </body>
