@@ -6,10 +6,10 @@ use App\Entity\Produit;
 use App\Form\ProduitFormType;
 use App\Repository\ProduitRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 
 class AdminController extends AbstractController
 {
@@ -70,8 +70,21 @@ class AdminController extends AbstractController
     /**
      * @Route("/admin/produits/editer/{id}" , name="app_produits_editer")
      */
-    public function editerProduit(Produit $produit, Request $request, EntityManagerInterface $manager) : Response
+    public function editerProduit(Produit $produit = null, Request $request, EntityManagerInterface $manager) : Response
     {
+        if(!$produit)
+        {
+            $produit = new Produit;
+        }
+        $id = $produit->getId();
+
+        if(!is_numeric($id) || is_null($id) )
+        {
+            $this->addFlash('warning', "Ce produit n'existe pas");
+
+            return $this->redirectToRoute('app_admin_produits');
+        }
+
         $id= $produit->getId();
 
         $form = $this->createForm(ProduitFormType::class, $produit);
@@ -104,7 +117,7 @@ class AdminController extends AbstractController
 
         $this->addFlash('danger', "Le produit ". $produit->getNom() ."a bien ete supprime");
 
-        return $this->redirectToRoute("app_admin_produit");
+        return $this->redirectToRoute("app_admin_produits");
     }
 
 }

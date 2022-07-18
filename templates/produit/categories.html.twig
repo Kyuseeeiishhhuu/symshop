@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Categorie des Produits!{% endblock %}
+
+{% block body %}
+    <div class="container my-3">
+
+        <h1 class="text-center bg-primary col-md-7 mx-auto my-3 p-3">
+        Tous nos categories de prosuits
+        </h1>
+
+        <ul class="list-group fw-bolder fs-italic">
+        {% for c in categories %}
+
+            <a href="{{ path("app_categorie_produits", {'id' : c.id} ) }}"><li class="list-group-item">{{c.nom}}</li></a>
+            <hr>
+        {% endfor %}
+        </ul>
+    
+    </div>
+
+
+{% endblock %}
