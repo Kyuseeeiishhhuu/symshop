@@ -2,10 +2,18 @@
 
 namespace App\Controller;
 
+use DateTime;
+use App\Entity\Avis;
+use App\Form\AvisFormType;
+use App\Repository\AvisRepository;
+use App\Repository\CategorieRepository;
 use App\Repository\ProduitRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /*on cree un controller pour traiter une partie de notre application , ici en l'occurence la partie produit */
 
@@ -35,15 +43,72 @@ class ProduitController extends AbstractController
     /** 
      * @Route("/produits/{id}", name="app_detail_produits" , requirements={"id"="\d+"})
      */
-    public function detail($id, ProduitRepository $produitRepo): Response
+    public function detail($id, ProduitRepository $produitRepo, Request $request, EntityManagerInterface $manager): Response
     {
         /*Autre possibiliter sans passer pzr l'injection de dependance
         $repo = $this->getDoctrine()->getRepository(Produit::class);
 
         $produit2= $repo->find($id);*/
 
+        $avis= new Avis;
+
+        $form = $this->createForm(AvisFormType::class, $avis);
+
+        $form->handleRequest($request);
+
+        dump($request);
+
+        if($form->isSubmitted() && $form->isValid())
+        {
+            $avis->setCreatedAt(new \DateTime())
+            ->setProduit($produitRepo->find($id));
+
+            $manager->persist($avis);
+            $manager->flush();
+
+            $this->addFlash('success', "Votre avis a bien ete poste!");
+
+            return $this->redirectToRoute("app_detail_produits", [
+                'id' => $id
+            ]);
+        }
+
         return $this->render("produit/detail.html.twig", [
-            'produit' => $produitRepo->find($id)
+            'produit' => $produitRepo->find($id),
+            'form' =>$form->createView()
+        ]);
+    }
+
+    /**
+     * Fonction Affichage selon categorie***********
+     * @Route("/categories/", name="app_categories")
+     */
+    public function categoriesAll(CategorieRepository $catRepos): Response
+    {
+        $categories = $catRepos->findAll();
+
+        return $this->render("produit/categories.html.twig", [
+            'categories' => $categories
+        ]);
+    }
+
+     /**
+     * Fonction Affichage selon categorie***********
+     * @Route("/categorie/{id}", name="app_categorie_produits")
+     */
+    public function categorieProduit($id, CategorieRepository $catRepos): Response
+    {
+        $categorie = $catRepos->find($id);
+
+        if(!$categorie)
+        {
+            $this->addFlash('warning', "Cette categorie n'existe pas");
+
+            return $this->redirectToRoute('app_categories');
+        }
+
+        return $this->render("produit/categorie_produit.html.twig", [
+            'categorie' => $categorie
         ]);
     }
 
